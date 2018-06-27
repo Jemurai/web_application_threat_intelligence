@@ -1,0 +1,24 @@
+version: '3.5'
+services:
+  app:
+    build: app
+    ports:
+      - "8080:8080"
+    container_name: sample-app
+    networks:
+      - threat_intel
+  redis:
+    image: redis
+    container_name: repsheet-redis
+    networks: 
+      - threat_intel
+  repsheet:
+    build: repsheet
+    ports:
+      - "8888:80"
+    container_name: repsheet
+    networks: 
+      - threat_intel
+networks:
+  threat_intel:
+    name: threat_intel
