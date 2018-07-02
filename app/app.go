@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/handlers"
@@ -18,7 +22,40 @@ type page struct {
 	Repsheet bool
 }
 
+type recaptchaResponse struct {
+	Success            bool
+	ChallengeTimestamp string `json:challenge_ts`
+	Hostname           string
+	ErrorCodes         []string
+}
+
 var templates = template.Must(template.ParseFiles("index.html", "admin.html"))
+
+func verifyRecaptcha(gResponse string) bool {
+	data := url.Values{}
+	data.Set("secret", "6LcuXBAUAAAAAAFcwv--LwXc1mU5C_yYfZICZDCM")
+	data.Set("response", gResponse)
+
+	request, _ := http.NewRequest("POST", "https://www.google.com/recaptcha/api/siteverify", strings.NewReader(data.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	transport := http.Transport{}
+	response, _ := transport.RoundTrip(request)
+	defer response.Body.Close()
+
+	bodyString, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var parsedResponse recaptchaResponse
+	json.Unmarshal(bodyString, &parsedResponse)
+
+	if !parsedResponse.Success {
+		log.Println("Recaptcha validation failed")
+	}
+
+	return parsedResponse.Success
+}
 
 func repsheetHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,8 +85,10 @@ func loginHandler(response http.ResponseWriter, request *http.Request) {
 		request.ParseForm()
 		username := request.PostFormValue("inputEmail")
 		password := request.PostFormValue("inputPassword")
+		recaptcha := request.PostFormValue("g-recaptcha-response")
+		recaptchaValid := verifyRecaptcha(recaptcha)
 
-		if username == "admin@example.com" && password == "P4$$w0rd!" {
+		if username == "admin@example.com" && password == "P4$$w0rd!" && recaptchaValid {
 			log.Println("Successfull login for admin@example.com")
 			http.Redirect(response, request, "/admin", 302)
 		} else {
