@@ -14,8 +14,11 @@ Aaron Bedra, Chief Scientist, Jemurai
 
 - Setup
 - Adaptive Security
-- The Repsheet Environment
-- Building a Processor
+- Identifying Threats
+- Indicators of Attack vs Indicators of Compromise
+- Containment of Malicious Actors
+- Device Fingerprinting
+- Applying Machine Learning to Threat Intelligence
 - Wrap-Up
 
 @ulend
@@ -42,9 +45,65 @@ docker compose up --build -d
 
 +++
 
-## Security and Trust are fluid
+## TODO: convert adaptive security talk
+
+---
+
+## Identifying Threats
+
+@fa[arrow-down]
 
 +++
+
+### Everything you've done so far is manual
+
++++
+
+### What we have is an improvement, but it lacks automation
+
++++
+
+### Let's build some
+
++++
+
+### Before we automate, we need data
+
++++
+
+### Start by simulating a login attack
+
+```sh
+cd pester
+docker build -t pester .
+docker run --network threat_intel \
+           -e TARGET=repsheet     \
+           -e PORT=80             \
+           pester
+```
+
+```text
+Starting login attack on http://repsheet:80/
+The password is: P4$$w0rd!
+```
+
++++
+
+### TODO run through log processor code
+
+---
+
+## Indicators of Attack vs Indicators of Compromise
+
+@fa[arrow-down]
+
+---
+
+## Containment of Malicous Actors
+
+@fa[arrow-down]
+
+---
 
 ### Repsheet gives you more fluid options for dealing with bad actors
 
@@ -252,8 +311,8 @@ docker-compose up --build -d
 ```sh
 cd cli
 docker build -t cli .
-docker run -it --network threat_intel                            \
-               --link repsheet-redis:repsheet-redis cli repsheet \
+docker run -it --network threat_intel                   \
+               --link repsheet-redis:repsheet-redis cli \
                -host repsheet-redis -list
 blacklisted actors
 whitelisted actors
@@ -261,42 +320,118 @@ marked actors
   172.19.0.1
 ```
 
++++
+
+### Mark yourself through the cli tool
+
+```sh
+docker run -it --network threat_intel                   \
+               --link repsheet-redis:repsheet-redis cli \
+               -host repsheet-redis -mark 172.19.0.1
+
+```
+
 ---
 
-## Automation
+## Device Fingerprinting
 
 @fa[arrow-down]
 
 +++
 
-### Everything you've done so far is manual
+### Fingerprinting helps you keep track of clients
 
 +++
 
-### What we have is an improvement, but it lacks automation
+### It provides a ton of useful information you otherwise can't get
 
 +++
 
-### Let's build some
+### It relies on client side code execution
 
 +++
 
-### Before we automate, we need data
+### This used to be done via flash
 
 +++
 
-### Start by simulating a login attack
+### But we all know that doesn't win friends anymore
 
-```sh
-cd pester
-docker build -t pester .
-docker run --network threat_intel \
-           -e TARGET=repsheet     \
-           -e PORT=80             \
-           pester
++++
+
+### So now it's done via JavaScript
+
++++
+
+### In particular, via a few specific functions
+
++++
+
+[https://developer.mozilla.org/en-US/docs/Web/API/Navigator](https://developer.mozilla.org/en-US/docs/Web/API/Navigator)
+
++++
+
+### The navigator object exposes all of the basic information about the client browser
+
++++
+
+### You can use it to detect if the actor is inconsistent
+
++++
+
+[https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial)
+
++++
+
+### WebGL allows you to execute more advanced code and better determine the browser's fingerprint
+
++++
+
+### This topic goes quite deep, so be sure to read more
+
++++
+
+[https://github.com/Valve/fingerprintjs2](https://github.com/Valve/fingerprintjs2)
+
++++
+
+### Let's give it a try
+
+```js
+new Fingerprint2().get(function(result, components) {
+  console.log(result) // a hash, representing your device fingerprint
+  console.log(components) // an array of FP components
+})
 ```
 
-```text
-Starting login attack on http://repsheet:80/
-The password is: P4$$w0rd!
-```
++++
+
+## Lab: Record device fingerprints
+
++++
+
+### What did you do with them?
+
++++
+
+### What kinds of things might you look for given the new information?
+
++++
+
+### What would you do in the absence of the information?
+
++++
+
+[https://www.youtube.com/watch?v=SdkKKmL-B_U](https://www.youtube.com/watch?v=SdkKKmL-B_U)
+
+---
+
+## Applying Machine Learning to Threat Intelligence
+
+@fa[arrow-down]
+
+---
+
+## Wrap-Up
+
+@fa[arrow-down]
