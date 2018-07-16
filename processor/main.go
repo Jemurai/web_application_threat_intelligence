@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/fzzy/radix/redis"
 )
 
 type configuration struct {
@@ -57,21 +55,11 @@ func process(config *configuration) map[string]int {
 
 func report(config *configuration, entries map[string]int) {
 	if len(entries) > 0 {
-		connection, err := redis.Dial("tcp", "repsheet-redis:6379")
-		if err != nil {
-			fmt.Println("Couldn't connect to Redis")
-			os.Exit(1)
-		}
-
-		connection.Cmd("MULTI")
 		for k, v := range entries {
 			if v >= config.Threshold {
-				fmt.Printf("Blacklisting %s. Threshold: %d, Actual: %d\n", k, config.Threshold, v)
-				actorString := fmt.Sprintf("%s:repsheet:ip:blacklisted", k)
-				connection.Cmd("SET", actorString, "web.attacks.authentication.bruteforce")
+				fmt.Printf("Brute force login attack from %s. Threshold: %d, Actual: %d\n", k, config.Threshold, v)
 			}
 		}
-		connection.Cmd("EXEC")
 	}
 }
 
