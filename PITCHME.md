@@ -173,6 +173,54 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 @fa[arrow-down]
 
++++
+
+### So far we have only asked questions about attacks
+
++++
+
+### These are referred to as Indicators of Attack
+
++++
+
+### What if an attack is successful?
+
++++
+
+### Take a look back at your application logs
+
+```sh
+172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
+172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
+172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
+172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
+172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 302 0
+```
+
++++
+
+### Notice anything about the last entry?
+
++++
+
+### The 302 is a successful login
+
++++
+
+### If an actor triggers the brute force detector then succeeds at logging in, is that a success?
+
++++
+
+### This is an example of a Indicator of Compromise
+
++++
+
+### Lab: Detect brute force IoC
+
++++
+
+### TODO: solution and wrap up
+
 ---
 
 ## Containment of Malicous Actors
