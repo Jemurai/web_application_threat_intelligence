@@ -55,23 +55,19 @@ docker compose up --build -d
 
 +++
 
-### Everything you've done so far is manual
+### How do you know a request or an actor is malicious?
 
 +++
 
-### What we have is an improvement, but it lacks automation
+### That's a loaded question
 
 +++
 
-### Let's build some
+### Let's start by generating some data
 
 +++
 
-### Before we automate, we need data
-
-+++
-
-### Start by simulating a login attack
+### Simulated login attack
 
 ```sh
 cd pester
@@ -89,7 +85,87 @@ The password is: P4$$w0rd!
 
 +++
 
-### TODO run through log processor code
+### Grab the logs from our sample application
+
+```sh
+docker cp sample-app:/go/src/app/logs/app.log .
+```
+
++++
+
+### What do you see?
+
++++
+
+### It looks pretty easy to disect
+
++++
+
+### So let's build something to do that
+
++++?code=processor/main.go&lang=golang
+
+@[36-45]
+
++++
+
+### Give it a try
+
+```sh
+docker build -t processor .
+docker run processor
+```
+
+```sh
+{172.19.0.5 POST / 200}
+{172.19.0.5 POST / 200}
+{172.19.0.5 POST / 200}
+{172.19.0.5 POST / 200}
+{172.19.0.5 POST / 200}
+{172.19.0.5 POST / 302}
+Complete
+```
+
++++
+
+### We now have the ability to ask questions of the data
+
++++
+
+### Lab: Detect the brute force login attack
+
++++
+
+### Solution
+
+```sh
+git checkout solutions/brute_force_detector
+cd processor
+docker build -t processor .
+docker run --network threat_intel \
+           --link repsheet-redis:repsheet-redis
+           processor
+```
+
+```sh
+Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
+```
+
++++
+
+### What does this solution provide?
+
++++
+
+### Once logfiles are accessible, any question can be asked
+
++++
+
+### TODO: se verifier check
+
++++
+
+### Wrap-Up
 
 ---
 
@@ -429,6 +505,67 @@ new Fingerprint2().get(function(result, components) {
 ## Applying Machine Learning to Threat Intelligence
 
 @fa[arrow-down]
+
++++
+
+### It's pretty easy to imagine the possible applications of ML to this problem space
+
++++
+
+### But often times it's a poor choice
+
++++
+
+### The reality is that both humans and bots are fairly predictable
+
++++
+
+### And the best solution is to extract functions
+
++++
+
+### ML can be slow and costly
+
++++
+
+### So before you reach for it make sure you can't do the same thing with functions and counters
+
++++
+
+### The best application of ML is in pattern discovery
+
++++
+
+### Example: Clustering
+
++++
+
+### TODO
+
++++
+
+### Let's look at training a model
+
+```sh
+cd fwaf
+docker build -t fwaf .
+docker run fwaf
+```
+
++++
+
+### Excercise: Run logs through fwaf to identify malicious requests
+
++++
+
+### Hint: try a scanning tool
+
+```sh
+docker run -it frapsoft/nikto \
+--link repsheet:repsheet      \
+--network threat_intl         \
+-host http://repsheet
+```
 
 ---
 
