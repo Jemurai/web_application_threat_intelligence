@@ -500,7 +500,7 @@ func repsheetHandler(next http.Handler) http.Handler {
 ### Running the solution
 
 ```sh
-git co solutions/lab1
+git co solutions/captcha
 docker-compose down
 docker-compose up --build -d
 ```
@@ -542,7 +542,15 @@ docker run -it --network threat_intel                   \
 
 +++
 
-### TODO: content
+### With the repsheet command line tool, you can interact with the cache faster
+
++++
+
+### But ultimately we want to wire up discovery of bad actors to Repsheet
+
++++
+
+### Lab: Modify the processor to blacklist malicious actors
 
 +++
 
