@@ -554,6 +554,37 @@ docker run -it --network threat_intel                   \
 
 +++
 
+### Run the solution
+
+```sh
+git checkout solutions/connected_processor
+cd processor
+docker build -t processor .
+docker run --network threat_intel               \
+           --link repsheet-redis:repsheet-redis \
+           processor
+```
+
++++
+
+### You will now be automatically blacklisted
+
+```sh
+curl localhost:8888
+```
+
+```html
+<html>
+  <head><title>403 Forbidden</title></head>
+  <body bgcolor="white">
+    <center><h1>403 Forbidden</h1></center>
+    <hr><center>nginx/1.13.1</center>
+  </body>
+</html>
+```
+
++++
+
 ### Wrap-Up
 
 ---
