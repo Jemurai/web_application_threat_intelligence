@@ -34,18 +34,12 @@ Aaron Bedra, Chief Scientist, Jemurai
 ### Build and run the environment
 
 ```sh
-docker compose up --build -d
+docker-compose up --build -d
 ```
 
 ---
 
 ## Adaptive Security
-
-@fa[arrow-down]
-
-+++
-
-## TODO: convert adaptive security talk
 
 ---
 
@@ -161,7 +155,19 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 +++
 
-### TODO: se verifier check
+### You can build any number of detectors on top of this model
+
++++
+
+### There are commercial tools available that help identify basic threats like this
+
++++
+
+### But for the more advanced detectors it's better to have your own processors
+
++++
+
+### If we have time later, we will build a more advanced detector
 
 +++
 
@@ -183,7 +189,24 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 +++
 
+### What do you do if you know you are being attacked?
+
+@ul
+
+- Let it happen
+- Block the actor
+- Report the actor
+- Confuse the actor
+
+@ulend
+
++++
+
 ### What if an attack is successful?
+
++++
+
+### What do you do then?
 
 +++
 
@@ -207,11 +230,11 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 +++
 
-### If an actor triggers the brute force detector then succeeds at logging in, is that a success?
+### If an actor trips the brute force detector then logs in, what does that mean?
 
 +++
 
-### This is an example of a Indicator of Compromise
+### This is an Indicator of Compromise
 
 +++
 
@@ -219,7 +242,35 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 +++
 
-### TODO: solution and wrap up
+### Now that we can detect an IoC, what do we do?
+
++++
+
+### In some cases you can automate incident response
+
++++
+
+### In the case of an account takeover, you can disable the account
+
++++
+
+### And force the reset of the users password
+
++++
+
+### If there are payment instruments, delete them
+
++++
+
+### Responding to an IoC is about preventing loss
+
++++
+
+### Loss doesn't occur until an asset is misused
+
++++
+
+### Wrap-Up
 
 ---
 
@@ -227,17 +278,51 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 @fa[arrow-down]
 
----
++++
+
+### Now that we are able to identify bad actors, what do we do with them?
+
++++
+
+### First, you want to stop them from any continued activity
+
++++
+
+### Depending on how you deploy, this can be difficult
+
++++
+
+### We're going to assume deployment behind a reverse proxy server
+
++++
+
+### In this case, NGINX
+
++++
+
+### Our environment consists of an application, NGINX, and Redis
+
++++?code=docker-compose.yml&lang=yaml
+
+@[3-9]
+@[10-14]
+@[15-21]
+
++++
+
+### Our control environment is already wired up
+
++++
+
+### But before we start exploring let's understand how it works
+
++++
 
 ### Repsheet gives you more fluid options for dealing with bad actors
 
 +++
 
 ## How does it work?
-
-+++
-
-## TODO repsheet image
 
 +++
 
@@ -285,7 +370,7 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 ```sh
 docker exec -it sample-app tail -f /go/src/app/logs/app.log
-172.19.0.3 - - [10/Jun/2017:13:59:14 +0000] "GET / HTTP/1.0" 200 1371
+172.19.0.1 - - [17/Jul/2018:12:55:04 +0000] "GET / HTTP/1.0" 200 1476
 ```
 
 +++
@@ -322,7 +407,7 @@ curl localhost:8888
 
 ### We can also change our mind
 
-```fundamental
+```sh
 repsheet-redis:6379> set 172.19.0.1:repsheet:ip:whitelisted manual
 OK
 curl localhost:8888
@@ -333,15 +418,15 @@ curl localhost:8888
 
 ### Let's take a look at the logs
 
-```fundamental
+```sh
 docker exec -it repsheet tail -f /usr/local/nginx/logs/error.log
 ```
 
-```fundamental
-2017/06/10 14:07:22 [error] 6#0: *102 [Repsheet] - IP 172.19.0.1
+```sh
+2018/07/17 13:01:00 [error] 5#0: *6438 [Repsheet] - IP 172.19.0.1
   was blocked by repsheet. Reason: manual, client: 172.19.0.1,
   server: , request: "GET / HTTP/1.1", host: "localhost:8888"
-2017/06/10 14:09:54 [error] 6#0: *103 [Repsheet] - IP 172.19.0.1
+2018/07/17 13:01:26 [error] 5#0: *6438 [Repsheet] - IP 172.19.0.1
   is whitelisted by repsheet. Reason: manual, client: 172.19.0.1,
   server: , request: "GET / HTTP/1.1", host: "localhost:8888"
 ```
@@ -350,7 +435,7 @@ docker exec -it repsheet tail -f /usr/local/nginx/logs/error.log
 
 ### We can also be unsure
 
-```text
+```sh
 repsheet-redis:6379> flushdb
 OK
 repsheet-redis:6379> set 127.19.0.1:repsheet:ip:marked manual
@@ -368,8 +453,8 @@ curl localhost:8888
 
 ### But under the hood
 
-```text
-2017/06/10 14:14:20 [error] 6#0: *105 [Repsheet] - IP 172.19.0.1
+```sh
+2018/07/17 13:08:17 [error] 5#0: *6445 [Repsheet] - IP 172.19.0.1
   was found on repsheet. Reason: manual, client: 172.19.0.1, server: ,
   request: "GET / HTTP/1.1", host: "localhost:8888"
 ```
@@ -408,7 +493,7 @@ func repsheetHandler(next http.Handler) http.Handler {
 
 +++
 
-## Lab: Make a better marked response
+### Lab: Make a better marked response
 
 +++
 
@@ -454,6 +539,14 @@ docker run -it --network threat_intel                   \
                -host repsheet-redis -mark 172.19.0.1
 
 ```
+
++++
+
+### TODO: content
+
++++
+
+### Wrap-Up
 
 ---
 
@@ -548,6 +641,14 @@ new Fingerprint2().get(function(result, components) {
 
 [https://www.youtube.com/watch?v=SdkKKmL-B_U](https://www.youtube.com/watch?v=SdkKKmL-B_U)
 
++++
+
+### TODO: content
+
++++
+
+### Wrap-Up
+
 ---
 
 ## Applying Machine Learning to Threat Intelligence
@@ -615,8 +716,14 @@ docker run -it frapsoft/nikto \
 -host http://repsheet
 ```
 
++++
+
+### TODO: content
+
++++
+
+### Wrap-Up
+
 ---
 
-## Wrap-Up
-
-@fa[arrow-down]
+## Parting thoughts and questions
