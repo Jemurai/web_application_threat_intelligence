@@ -136,8 +136,8 @@ Complete
 git checkout solutions/brute_force_detector
 cd processor
 docker build -t processor .
-docker run --network threat_intel \
-           --link repsheet-redis:repsheet-redis
+docker run --network threat_intel               \
+           --link repsheet-redis:repsheet-redis \
            processor
 ```
 
@@ -682,10 +682,6 @@ new Fingerprint2().get(function(result, components) {
 
 +++
 
-### TODO: content
-
-+++
-
 ### Wrap-Up
 
 ---
@@ -728,10 +724,6 @@ new Fingerprint2().get(function(result, components) {
 
 +++
 
-### TODO
-
-+++
-
 ### Let's look at training a model
 
 ```sh
@@ -742,11 +734,7 @@ docker run fwaf
 
 +++
 
-### Excercise: Run logs through fwaf to identify malicious requests
-
-+++
-
-### Hint: try a scanning tool
+### Try a scanning tool
 
 ```sh
 docker run -it frapsoft/nikto \
@@ -757,7 +745,7 @@ docker run -it frapsoft/nikto \
 
 +++
 
-### TODO: content
+### Optional Lab: Run logs through fwaf to identify malicious requests
 
 +++
 
