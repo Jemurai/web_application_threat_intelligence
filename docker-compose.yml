@@ -8,16 +8,16 @@ services:
     networks:
       - threat_intel
   redis:
-    image: redis
+    build: redis
     container_name: repsheet-redis
-    networks: 
+    networks:
       - threat_intel
   repsheet:
     build: repsheet
     ports:
       - "8888:80"
     container_name: repsheet
-    networks: 
+    networks:
       - threat_intel
 networks:
   threat_intel:
