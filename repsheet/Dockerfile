@@ -1,32 +1,17 @@
 FROM centos:latest
 
-RUN yum groupinstall "Development Tools" -y
-RUN yum install pcre-devel zlib-devel check-devel -y
+RUN yum -y install epel-release
+RUN yum -y update
+RUN yum -y install gcc make pkg-config pcre-devel zlib-devel hiredis hiredis-devel
 
 WORKDIR /code
+RUN curl -s -L -O "https://github.com/repsheet/repsheet-nginx/archive/5.0.2.tar.gz"
+RUN tar xzf 5.0.2.tar.gz
 
-RUN git clone https://github.com/redis/hiredis
-WORKDIR /code/hiredis
-RUN make
-RUN PREFIX=/usr LIBRARY_PATH=lib64 make install
-
-WORKDIR /code
-RUN curl -s -L -O "https://github.com/repsheet/librepsheet/archive/6.2.1.tar.gz"
-RUN tar xzf 6.2.1.tar.gz
-WORKDIR /code/librepsheet-6.2.1
-RUN ./autogen.sh
-RUN ./configure --prefix=/usr --libdir=/usr/lib64
-RUN make
-RUN make install
-
-WORKDIR /code
-RUN curl -s -L -O "https://github.com/repsheet/repsheet-nginx/archive/4.3.0.tar.gz"
-RUN tar xzf 4.3.0.tar.gz
-
-RUN curl -s -L -O "http://nginx.org/download/nginx-1.13.1.tar.gz"
-RUN tar xzf nginx-1.13.1.tar.gz
-WORKDIR /code/nginx-1.13.1
-RUN ./configure --add-module=../repsheet-nginx-4.3.0
+RUN curl -s -L -O "http://nginx.org/download/nginx-1.15.7.tar.gz"
+RUN tar xzf nginx-1.15.7.tar.gz
+WORKDIR /code/nginx-1.15.7
+RUN ./configure --add-module=../repsheet-nginx-5.0.2
 RUN make
 RUN make install
 

@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/fzzy/radix/redis"
 )
 
 type configuration struct {
-	LogFile string
+	LogFile   string
+	Threshold int
+	Host string
 }
 
 type logEntry struct {
@@ -19,7 +23,7 @@ type logEntry struct {
 	ResponseCode string
 }
 
-func process(config *configuration) {
+func process(config *configuration) map[string]int {
 	file, err := os.Open(config.LogFile)
 	if err != nil {
 		fmt.Println(err)
@@ -33,6 +37,8 @@ func process(config *configuration) {
 		lines = append(lines, scanner.Text())
 	}
 
+	entries := make(map[string]int)
+
 	for _, entry := range lines {
 		parts := strings.Split(entry, " ")
 		l := logEntry{
@@ -41,20 +47,42 @@ func process(config *configuration) {
 			URI:          parts[6],
 			ResponseCode: parts[8],
 		}
-		fmt.Println(l)
+
+		if l.Method == "POST" && l.ResponseCode == "200" {
+			entries[l.Address]++
+		}
 	}
+
+	return entries
 }
 
-func report() {
-	fmt.Println("Complete")
+func report(config *configuration, entries map[string]int) {
+	if len(entries) > 0 {
+		connection, err := redis.Dial("tcp", config.Host)
+		if err != nil {
+			fmt.Println("Couldn't connect to Redis")
+			os.Exit(1)
+		}
+
+		connection.Cmd("MULTI")
+		for actor, entry := range entries {
+			if entry >= config.Threshold {
+				fmt.Printf("Blacklisting %s. Threshold: %d, Actual: %d\n", actor, config.Threshold, entry)
+				connection.Cmd("REPSHEET.BLACKLIST", actor, "web.attacks.authentication.bruteforce")
+			}
+		}
+		connection.Cmd("EXEC")
+	}
 }
 
 func main() {
 	logFilePtr := flag.String("logfile", "app.log", "Path to logfile")
+	thresholdPtr := flag.Int("threshold", 10, "Threshold before blacklisting")
+	hostPtr := flag.String("host", "localhost:6379", "Redis host")
 	flag.Parse()
 
-	config := &configuration{LogFile: *logFilePtr}
+	config := &configuration{LogFile: *logFilePtr, Threshold: *thresholdPtr, Host: *hostPtr}
 
-	process(config)
-	report()
+	entries := process(config)
+	report(config, entries)
 }
