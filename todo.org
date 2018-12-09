@@ -1,9 +1,13 @@
-* ArchConf [2/6]
+* ArchConf [4/7]
 ** DONE Build custom redis container with redis module
    CLOSED: [2018-12-07 Fri 08:59]
 ** DONE Build updated repsheet-nginx container
    CLOSED: [2018-12-07 Fri 08:59]
-** TODO Update processor to use redis module commands
-** TODO Test everything
+** DONE Investigate marking issues (not displaying marked status in app)
+   CLOSED: [2018-12-09 Sun 16:55]
+** DONE Update processor to use redis module commands
+   CLOSED: [2018-12-09 Sun 17:29]
+** INPROGRESS Test everything
 ** TODO Update Slides
-** TODO Investigate marking issues (not displaying marked status in app)
+** TODO Blacklist marked actor when they fail the captcha
+
