@@ -86,10 +86,17 @@ func loginHandler(response http.ResponseWriter, request *http.Request) {
 		request.ParseForm()
 		username := request.PostFormValue("inputEmail")
 		password := request.PostFormValue("inputPassword")
-		recaptcha := request.PostFormValue("g-recaptcha-response")
-		recaptchaValid := verifyRecaptcha(recaptcha)
 
-		if username == "admin@example.com" && password == "P4$$w0rd!" && recaptchaValid {
+		if context.Get(request, "repsheet") != nil {
+			recaptcha := request.PostFormValue("g-recaptcha-response")
+			recaptchaValid := verifyRecaptcha(recaptcha)
+			if (!recaptchaValid) {
+				p := page{Title: "Login", Error: "Captcha Failed"}
+				templates.ExecuteTemplate(response, "index.html", p)
+			}
+		}
+
+		if username == "admin@example.com" && password == "P4$$w0rd!" {
 			log.Println("Successfull login for admin@example.com")
 			http.Redirect(response, request, "/admin", 302)
 		} else {
