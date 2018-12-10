@@ -336,7 +336,7 @@ Blacklisting 172.19.0.5. Threshold: 10, Actual: 31
 
 ```sh
 docker exec -it sample-app tail -f /go/src/app/logs/app.log
-172.19.0.1 - - [17/Jul/2018:12:55:04 +0000] "GET / HTTP/1.0" 200 1476
+172.18.0.1 - - [10/Dec/2018:13:04:46 +0000] "GET / HTTP/1.0" 200 1545
 ```
 
 +++
@@ -344,10 +344,8 @@ docker exec -it sample-app tail -f /go/src/app/logs/app.log
 ### Pretend we are malicious
 
 ```sh
-docker run -it --network threat_intel                     \
-               --link repsheet-redis:repsheet-redis redis \
-               redis-cli -h repsheet-redis
-repsheet-redis:6379> set 172.19.0.1:repsheet:ip:blacklisted manual
+docker exec -it repsheet-redis redis-cli
+repsheet-redis:6379> REPSHEET.BLACKLIST 172.18.0.1 manual
 OK
 ```
 
@@ -364,7 +362,7 @@ curl localhost:8888
   <head><title>403 Forbidden</title></head>
   <body bgcolor="white">
     <center><h1>403 Forbidden</h1></center>
-    <hr><center>nginx/1.13.1</center>
+    <hr><center>nginx/1.15.7</center>
   </body>
 </html>
 ```
@@ -374,7 +372,7 @@ curl localhost:8888
 ### We can also change our mind
 
 ```sh
-repsheet-redis:6379> set 172.19.0.1:repsheet:ip:whitelisted manual
+repsheet-redis:6379> REPSHEET.WHITELIST 172.18.0.1 manual
 OK
 curl localhost:8888
 -- Normal app output --
@@ -388,12 +386,12 @@ curl localhost:8888
 docker exec -it repsheet tail -f /usr/local/nginx/logs/error.log
 ```
 
-```sh
-2018/07/17 13:01:00 [error] 5#0: *6438 [Repsheet] - IP 172.19.0.1
-  was blocked by repsheet. Reason: manual, client: 172.19.0.1,
+```log
+2018/12/10 13:05:55 [error] 6#0: *4 [Repsheet] - IP 172.18.0.1
+  was blocked by repsheet. Reason: manual, client: 172.18.0.1,
   server: , request: "GET / HTTP/1.1", host: "localhost:8888"
-2018/07/17 13:01:26 [error] 5#0: *6438 [Repsheet] - IP 172.19.0.1
-  is whitelisted by repsheet. Reason: manual, client: 172.19.0.1,
+2018/12/10 13:07:32 [error] 6#0: *5 [Repsheet] - IP 172.18.0.1
+  is whitelisted by repsheet. Reason: manual, client: 172.18.0.1,
   server: , request: "GET / HTTP/1.1", host: "localhost:8888"
 ```
 
@@ -404,14 +402,14 @@ docker exec -it repsheet tail -f /usr/local/nginx/logs/error.log
 ```sh
 repsheet-redis:6379> flushdb
 OK
-repsheet-redis:6379> set 127.19.0.1:repsheet:ip:marked manual
+repsheet-redis:6379> REPSHEET.MARK 172.18.0.1 manual
 OK
 curl localhost:8888
 ```
 
 ```html
-<div>
-  <p>Actor is marked</p>
+<div class="g-recaptcha"
+  data-sitekey="6LcuXBAUAAAAAJ0vN6S5bzN9nq_Pn5uIxrxEqsBz">
 </div>
 ```
 
@@ -419,9 +417,9 @@ curl localhost:8888
 
 ### But under the hood
 
-```sh
-2018/07/17 13:08:17 [error] 5#0: *6445 [Repsheet] - IP 172.19.0.1
-  was found on repsheet. Reason: manual, client: 172.19.0.1, server: ,
+```log
+2018/12/10 13:10:54 [error] 6#0: *7 [Repsheet] - IP 172.18.0.1
+  was found on repsheet. Reason: manual, client: 172.18.0.1, server: ,
   request: "GET / HTTP/1.1", host: "localhost:8888"
 ```
 
@@ -451,103 +449,11 @@ func repsheetHandler(next http.Handler) http.Handler {
 
 +++
 
-### The sample application will show a message
+### The sample application will show a captcha
 
 +++
 
-### That's a bad idea
-
-+++
-
-### Lab: Make a better marked response
-
-+++
-
-### Running the solution
-
-```sh
-git co solutions/captcha
-docker-compose down
-docker-compose up --build -d
-```
-
-+++
-
-### You will see a captcha if you come from a marked host
-
-+++
-
-### Working with the repsheet cache can be easier
-
-+++
-
-### Example
-
-```sh
-cd cli
-docker build -t cli .
-docker run -it --network threat_intel                   \
-               --link repsheet-redis:repsheet-redis cli \
-               -host repsheet-redis -list
-blacklisted actors
-whitelisted actors
-marked actors
-  172.19.0.1
-```
-
-+++
-
-### Mark yourself through the cli tool
-
-```sh
-docker run -it --network threat_intel                   \
-               --link repsheet-redis:repsheet-redis cli \
-               -host repsheet-redis -mark 172.19.0.1
-
-```
-
-+++
-
-### With the repsheet command line tool, you can interact with the cache faster
-
-+++
-
-### But ultimately we want to wire up discovery of bad actors to Repsheet
-
-+++
-
-### Lab: Modify the processor to blacklist malicious actors
-
-+++
-
-### Run the solution
-
-```sh
-git checkout solutions/connected_processor
-cd processor
-docker build -t processor .
-docker run --network threat_intel               \
-           --link repsheet-redis:repsheet-redis \
-           processor
-```
-
-+++
-
-### You will now be automatically blacklisted
-
-```sh
-curl localhost:8888
-```
-
-```html
-<html>
-  <head><title>403 Forbidden</title></head>
-  <body bgcolor="white">
-    <center><h1>403 Forbidden</h1></center>
-    <hr><center>nginx/1.13.1</center>
-  </body>
-</html>
-```
+### If you haven't, run the processor to see the complete idea in action
 
 +++
 
