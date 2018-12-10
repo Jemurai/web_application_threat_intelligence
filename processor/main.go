@@ -13,7 +13,7 @@ import (
 type configuration struct {
 	LogFile   string
 	Threshold int
-	Host string
+	Host      string
 }
 
 type logEntry struct {
@@ -78,7 +78,7 @@ func report(config *configuration, entries map[string]int) {
 func main() {
 	logFilePtr := flag.String("logfile", "app.log", "Path to logfile")
 	thresholdPtr := flag.Int("threshold", 10, "Threshold before blacklisting")
-	hostPtr := flag.String("host", "localhost:6379", "Redis host")
+	hostPtr := flag.String("host", "repsheet-redis:6379", "Redis host")
 	flag.Parse()
 
 	config := &configuration{LogFile: *logFilePtr, Threshold: *thresholdPtr, Host: *hostPtr}

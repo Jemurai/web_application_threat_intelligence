@@ -18,7 +18,6 @@ Aaron Bedra, Chief Scientist, Jemurai
 - Indicators of Attack vs Indicators of Compromise
 - Containment of Malicious Actors
 - Device Fingerprinting
-- Applying Machine Learning to Threat Intelligence
 - Wrap-Up
 
 @ulend
@@ -82,6 +81,7 @@ The password is: P4$$w0rd!
 ### Grab the logs from our sample application
 
 ```sh
+cd ../processor
 docker cp sample-app:/go/src/app/logs/app.log .
 ```
 
@@ -99,7 +99,7 @@ docker cp sample-app:/go/src/app/logs/app.log .
 
 +++?code=processor/main.go&lang=golang
 
-@[36-45]
+@[42-54]
 
 +++
 
@@ -107,42 +107,11 @@ docker cp sample-app:/go/src/app/logs/app.log .
 
 ```sh
 docker build -t processor .
-docker run processor
+docker run --network threat_intel processor
 ```
 
 ```sh
-{172.19.0.5 POST / 200}
-{172.19.0.5 POST / 200}
-{172.19.0.5 POST / 200}
-{172.19.0.5 POST / 200}
-{172.19.0.5 POST / 200}
-{172.19.0.5 POST / 302}
-Complete
-```
-
-+++
-
-### We now have the ability to ask questions of the data
-
-+++
-
-### Lab: Detect the brute force login attack
-
-+++
-
-### Solution
-
-```sh
-git checkout solutions/brute_force_detector
-cd processor
-docker build -t processor .
-docker run --network threat_intel               \
-           --link repsheet-redis:repsheet-redis \
-           processor
-```
-
-```sh
-Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
+Blacklisting 172.19.0.5. Threshold: 10, Actual: 31
 ```
 
 +++
@@ -151,7 +120,7 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 +++
 
-### Once logfiles are accessible, any question can be asked
+### A flexible way to ask questions about request traffic
 
 +++
 
@@ -212,12 +181,12 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 ### Take a look back at your application logs
 
-```sh
-172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
-172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
-172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
-172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 200 1541
-172.19.0.5 - - [27/Jun/2018:20:04:05 +0000] "POST / HTTP/1.0" 302 0
+```nohighlight
+2018/12/10 01:30:10 Login failed for admin@example.com
+2018/12/10 01:30:10 Login failed for admin@example.com
+2018/12/10 01:30:10 Login failed for admin@example.com
+2018/12/10 01:30:10 Login failed for admin@example.com
+2018/12/10 01:30:10 Successfull login for admin@example.com
 ```
 
 +++
@@ -330,9 +299,8 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 
 @ul
 
-- hiredis (Redis C adapter)
-- librepsheet (redis cache layer and core logic)
-- repsheet-nginx (NGINX module that provides the control plane)
+- redis_module (custom cache handling)
+- repsheet-nginx (NGINX module)
 
 @ulend
 
@@ -346,15 +314,13 @@ Brute force login attack from 172.19.0.5. Threshold: 10, Actual: 31
 @[9-9]
 @[10-10]
 @[11-11]
+@[12-12]
 @[13-13]
 @[14-14]
 @[15-15]
-@[16-16]
-@[18-18]
-@[19-19]
-@[20-20]
-@[26-26]
-@[27-27]
+@[17-17]
+@[19-21]
+@[23-29]
 
 +++
 
